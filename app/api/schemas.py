@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 class ChatRequest(BaseModel):
     session_id: UUID = Field(..., description="UUID чат-сессии")
     question: str = Field(..., min_length=1, max_length=2000, description="Вопрос пользователя")
+    user_id: str = Field(default="anonimouse", max_length=30, description="Логин пользователя")
 
 class ChatEvent(BaseModel):
     """Событие, отправляемое через SSE."""
