@@ -1,0 +1,58 @@
+services:
+  api:
+    build: .
+    container_name: agent-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      chromadb:
+        condition: service_started
+    networks:
+      - agent-network
+    command: ["sleep", "infinity"]
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: agent-postgres
+    environment:
+      POSTGRES_USER: agent_user
+      POSTGRES_PASSWORD: agent_pass
+      POSTGRES_DB: agent_db
+    ports:
+      - "55432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agent_user -d agent_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - agent-network
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: agent-chromadb
+    ports:
+      - "8001:8000" # Chroma по умолчанию на 8000, пробрасываем на 8001
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    volumes:
+      - chroma_data:/chroma/chroma
+    networks:
+      - agent-network
+
+volumes:
+  postgres_data:
+  chroma_data:
+
+networks:
+  agent-network:
+    driver: bridge
