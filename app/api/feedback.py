@@ -5,7 +5,7 @@ from core.config import settings
 from langfuse import get_client
 
 logger = logging.getLogger(__name__)
-router = APIRouter(tags=["feedback"])
+router = APIRouter(prefix="/api/v1", tags=["feedback"])
 
 @router.post("/chat/feedback")
 async def submit_feedback(feedback: FeedbackRequest):
@@ -14,15 +14,14 @@ async def submit_feedback(feedback: FeedbackRequest):
 
     try:
         client = get_client()
-        # Используем session_id как идентификатор трейса (он же thread_id в чекпоинтах)
-        trace_id = str(feedback.session_id)
+        trace_id = str(feedback.trace_id)
 
         # Отправляем score в LangFuse
         client.create_score(
             trace_id=trace_id,
             name="user_feedback",
             value=1.0 if feedback.rating == "like" else 0.0,
-            data_type="BOOLEAN",
+            data_type="NUMERIC",
             comment=feedback.comment,
         )
         logger.info(f"Feedback saved: session={trace_id} rating={feedback.rating}")

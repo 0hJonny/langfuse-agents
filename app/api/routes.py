@@ -38,7 +38,7 @@ async def stream_chat(payload: ChatRequest, request: Request):
 
             final_state = await graph.aget_state(config)
             final_text = final_state.values.get("final_answer", "Не удалось сформировать ответ.")
-            final_answer = FinalAnswer(session_id=payload.session_id, answer=final_text)
+            final_answer = FinalAnswer(session_id=payload.session_id, answer=final_text, trace_id=langfuse_handler.last_trace_id)
             yield {"event": "final", "data": final_answer.model_dump_json()}
 
         except Exception as e:

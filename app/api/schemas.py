@@ -14,8 +14,9 @@ class ChatEvent(BaseModel):
 class FinalAnswer(BaseModel):
     session_id: UUID
     answer: str
+    trace_id: str | None
 
 class FeedbackRequest(BaseModel):
-    session_id: UUID = Field(..., description="UUID сессии, к которой относится оценка")
+    trace_id: str = Field(..., description="ID trace сообщения, к которой относится оценка")
     rating: str = Field(..., pattern="^(like|dislike)$", description="Оценка: like или dislike")
     comment: str | None = Field(None, max_length=500, description="Опциональный комментарий")
