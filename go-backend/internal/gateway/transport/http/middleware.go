@@ -10,7 +10,6 @@ type contextKey string
 
 const UserIDKey contextKey = "user_id"
 
-// AuthMiddleware теперь НЕЗАВИСИМАЯ функция. Она принимает валидатор снаружи.
 func AuthMiddleware(validator TokenValidator) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

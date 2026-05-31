@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/0hJonny/langfuse-agents/internal/auth/domain"
 )
@@ -35,15 +34,7 @@ func (h *Handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var anonUserID string
-	authHeader := r.Header.Get("Authorization")
-	if strings.HasPrefix(authHeader, "Bearer ") {
-		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
-
-		if id, err := h.service.ValidateToken(r.Context(), tokenStr); err == nil {
-			anonUserID = id
-		}
-	}
+	anonUserID := h.extractAnonUserID(r)
 
 	token, err := h.service.Register(r.Context(), req.Email, req.Password, anonUserID)
 	if err != nil {
@@ -61,8 +52,12 @@ func (h *Handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.respondWithJSON(w, http.StatusCreated, TokenResponse{Token: token.Value, ExpiresAt: token.ExpiresAt})
+	h.respondWithJSON(w, http.StatusCreated, TokenResponse{
+		Token:     token.Value, 
+		ExpiresAt: token.ExpiresAt,
+	})
 }
+
 
 func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	var req AuthRequest
