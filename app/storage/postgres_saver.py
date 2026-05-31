@@ -1,10 +1,10 @@
 from contextlib import asynccontextmanager
-from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
-from core.config import settings
 from typing import AsyncGenerator
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+from core.postgres import db_pool
 
 @asynccontextmanager
 async def create_postgres_checkpointer() -> AsyncGenerator[AsyncPostgresSaver, None]:
-    async with AsyncPostgresSaver.from_conn_string(settings.postgres_uri) as checkpointer:
-        await checkpointer.setup()
-        yield checkpointer
+    checkpointer = AsyncPostgresSaver(db_pool)
+    await checkpointer.setup()
+    yield checkpointer

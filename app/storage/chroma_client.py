@@ -1,12 +1,15 @@
+import asyncio
+from functools import lru_cache
 from chromadb import HttpClient
 from chromadb.config import Settings as ChromaSettings
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
-from functools import lru_cache
-import asyncio
 from core.config import settings
 
-_embeddings = HuggingFaceEmbeddings(model_name=settings.embedding_model)
+@lru_cache(maxsize=1)
+def get_embeddings() -> HuggingFaceEmbeddings:
+    """Инициализируется только при первом вызове."""
+    return HuggingFaceEmbeddings(model_name=settings.embedding_model)
 
 @lru_cache(maxsize=1)
 def get_chroma_vectorstore() -> Chroma:
@@ -18,7 +21,7 @@ def get_chroma_vectorstore() -> Chroma:
     return Chroma(
         client=client,
         collection_name=settings.chroma_collection,
-        embedding_function=_embeddings,
+        embedding_function=get_embeddings(),
     )
 
 async def async_similarity_search(query: str, k: int = 3):

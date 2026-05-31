@@ -1,0 +1,82 @@
+version: "2"
+
+# Настройки запуска
+run:
+  timeout: 5m                  # Тайм-аут
+  issues-exit-code: 1          # Код возврата при найденных ошибках
+  go: "1.26"                   # Версия Go вашего проекта
+
+# Настройка вывода
+output:
+  text:
+    format: colored-line-number 
+    print-issued-lines: true
+    print-linter-name: true
+
+# Настройка форматировщиков кода (отдельная секция в v2)
+formatters:
+  enable:
+    - goimports
+  settings:
+    goimports:
+      local-prefixes: github.com/0hJonny/langfuse-agents
+
+# Единый блок управления линтерами и их настройками
+linters:
+  default: none                # Отключаем дефолтные линтеры
+  enable:
+    # Базовые и обязательные
+    - errcheck                 # Находит проигнорированные ошибки
+    - govet                    # Официальный анализатор Go
+    - ineffassign              # Ищет неиспользуемые присваивания
+    - staticcheck              # Объединенный мощный анализатор
+    - unused                   # Поиск неиспользуемого кода
+    
+    # Качество кода и стиль
+    - gocritic                 # Best practices, performance и style
+    - revive                   # Аналог устаревшего golint
+    - misspell                 # Ищет опечатки в английских словах
+    - errorlint                # Проверяет правильность оборачивания ошибок (%w)
+
+    # Безопасность и производительность
+    - gosec                    # Анализатор уязвимостей
+    - prealloc                 # Подсказывает пред-аллокацию памяти слайсов
+
+  # Специфичные настройки для каждого линтера теперь находятся прямо здесь
+  settings:
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - experimental
+        - opinionated
+        - performance
+        - style
+
+    revive:
+      rules:
+        - name: exported
+          severity: warning
+          disabled: true
+        - name: blank-imports
+          severity: warning
+
+    errcheck:
+      check-type-assertions: true # Проверять приведение типов
+      check-blank: false           # Проверять конструкции вида `_ = func()`
+    
+    govet:
+      enable:
+        - fieldalignment
+
+# Исключения (что не нужно проверять)
+issues:
+  exclude-rules:
+    # Игнорируем тесты для линтера revive
+    - path: _test\.go
+      linters:
+        - revive
+    # Игнорируем предупреждения gosec о слабых рандомайзерах в тестах
+    - path: _test\.go
+      text: "G404:"
+      linters:
+        - gosec

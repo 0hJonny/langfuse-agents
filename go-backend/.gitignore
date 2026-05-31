@@ -1,0 +1,27 @@
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.prof
+
+*.out
+*.coverprofile
+coverage.txt
+
+# --- Зависимости (если вы не используете вендоринг) ---
+# Раскомментируйте строку ниже, только если НЕ хотите хранить папку vendor в Git
+# vendor/
+
+.vscode/
+!/.vscode/launch.json
+!/.vscode/tasks.json
+
+.env
+.env*.local
+
+.DS_Store
+Thumbs.db
+tmp
+vendor

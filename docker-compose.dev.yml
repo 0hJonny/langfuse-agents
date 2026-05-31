@@ -1,13 +1,15 @@
 services:
   api:
-    build: .
+    build:
+      context: app
+      dockerfile: dockerfile
     container_name: agent-api
     ports:
       - "8000:8000"
     volumes:
       - ./app:/app
     env_file:
-      - .env
+      - .env.dev
     depends_on:
       postgres:
         condition: service_healthy
@@ -17,13 +19,27 @@ services:
       - agent-network
     command: ["sleep", "infinity"]
 
+  go:
+    build:
+      context: go-backend
+      dockerfile: dockerfile.dev
+    container_name: go_dev_app
+    ports:
+      - "6000:8080"
+    volumes:
+      - ./:/app
+    env_file:
+      - .env.dev
+    networks:
+      - agent-network
+
   postgres:
     image: postgres:16-alpine
     container_name: agent-postgres
     environment:
-      POSTGRES_USER: agent_user
-      POSTGRES_PASSWORD: agent_pass
-      POSTGRES_DB: agent_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "55432:5432"
     volumes:
@@ -40,7 +56,7 @@ services:
     image: chromadb/chroma:latest
     container_name: agent-chromadb
     ports:
-      - "8001:8000" # Chroma по умолчанию на 8000, пробрасываем на 8001
+      - "8001:8000"
     environment:
       - IS_PERSISTENT=TRUE
       - ANONYMIZED_TELEMETRY=FALSE
@@ -49,9 +65,26 @@ services:
     networks:
       - agent-network
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: agent-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - agent-network
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
 volumes:
   postgres_data:
   chroma_data:
+  pgadmin_data:
 
 networks:
   agent-network:
